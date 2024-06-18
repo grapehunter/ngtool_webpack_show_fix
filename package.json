@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "postinstall": "patch-package",
     "start": "webpack serve --env prod=0 \"$@\"",
     "build": "webpack --progress --env prod=1 \"$@\""
   },
@@ -15,6 +16,7 @@
     "@ngtools/webpack": "^18.0.4",
     "html-webpack-plugin": "^5.6.0",
     "ifdef-loader": "^2.3.2",
+    "patch-package": "^8.0.0",
     "typescript": "^5.4.5",
     "webpack": "^5.92.0",
     "webpack-cli": "^5.1.4",

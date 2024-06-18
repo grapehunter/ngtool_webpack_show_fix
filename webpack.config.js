@@ -27,7 +27,7 @@ module.exports = (env) => {
                 optimize: isProduction,
               },
             },
-            { loader: "ifdef-loader", options: { DEBUG: !isProduction } },
+            // { loader: "ifdef-loader", options: { DEBUG: !isProduction } }, // use AngularWebpackPlugin::sourceModifiers
             { loader: path.resolve(__dirname, "./scripts/trace-loader.cjs") }, // log source code in pipeline
             {
               loader: "@ngtools/webpack",
@@ -56,7 +56,17 @@ module.exports = (env) => {
           declarationMap: false,
           preserveSymlinks: false,
         },
-        inlineStyleFileExtension: "scss",
+        sourceModifier: [
+          {
+            filter: (source, path) => !/node_modules/.test(path),
+            modifier: (source, path) => {
+              const { parse } = require("ifdef-loader/preprocessor");
+              return parse(source, {
+                DEBUG: !isProduction,
+              });
+            },
+          },
+        ],
       }),
     ],
   };

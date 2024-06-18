@@ -1,0 +1,42 @@
+diff --git a/node_modules/@ngtools/webpack/src/ivy/plugin.js b/node_modules/@ngtools/webpack/src/ivy/plugin.js
+index 9c970d0..8c00f1f 100644
+--- a/node_modules/@ngtools/webpack/src/ivy/plugin.js
++++ b/node_modules/@ngtools/webpack/src/ivy/plugin.js
+@@ -139,7 +139,7 @@ class AngularWebpackPlugin {
+         // Create a Webpack-based TypeScript compiler host
+         const system = (0, system_1.createWebpackSystem)(
+         // Webpack lacks an InputFileSytem type definition with sync functions
+-        compiler.inputFileSystem, (0, paths_1.normalizePath)(compiler.context));
++        compiler.inputFileSystem, (0, paths_1.normalizePath)(compiler.context), this.pluginOptions.sourceModifier ?? []);
+         const host = ts.createIncrementalCompilerHost(compilerOptions, system);
+         // Setup source file caching and reuse cache from previous compilation if present
+         let cache = this.sourceFileCache;
+diff --git a/node_modules/@ngtools/webpack/src/ivy/system.js b/node_modules/@ngtools/webpack/src/ivy/system.js
+index d86681b..4ba03b6 100644
+--- a/node_modules/@ngtools/webpack/src/ivy/system.js
++++ b/node_modules/@ngtools/webpack/src/ivy/system.js
+@@ -36,7 +36,7 @@ const paths_1 = require("./paths");
+ function shouldNotWrite() {
+     throw new Error('Webpack TypeScript System should not write.');
+ }
+-function createWebpackSystem(input, currentDirectory) {
++function createWebpackSystem(input, currentDirectory, sourceModifiers) {
+     // Webpack's CachedInputFileSystem uses the default directory separator in the paths it uses
+     // for keys to its cache. If the keys do not match then the file watcher will not purge outdated
+     // files and cause stale data to be used in the next rebuild. TypeScript always uses a `/` (POSIX)
+@@ -58,7 +58,14 @@ function createWebpackSystem(input, currentDirectory) {
+             if (data.length > 3 && data[0] === 0xef && data[1] === 0xbb && data[2] === 0xbf) {
+                 start = 3;
+             }
+-            return data.toString('utf8', start);
++            // return data.toString('utf8', start);
++            let source = data.toString('utf8', start);
++            for (const sourceModifier of sourceModifiers) {
++                if (typeof sourceModifier.filter === 'function' && sourceModifier.filter(source, path)) {
++                    source = sourceModifier.modifier(source, path);
++                }
++            }
++            return source;
+         },
+         getFileSize(path) {
+             try {
